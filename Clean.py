@@ -69,22 +69,7 @@ income_expenditure_columns = [
 ]
 df[income_expenditure_columns] = df[income_expenditure_columns].apply(pd.to_numeric, errors='coerce')
 
-# Step 7: Handle Outliers with Winsorization (does NOT remove rows)
-for col in income_expenditure_columns:
-    # Winsorize data by capping at 1% and 99% quantiles
-    df[col] = winsorize(df[col], limits=[0.01, 0.01])
 
-# Step 8: Apply Log Transformation to Numeric Columns (EXCLUDING categorical columns)
-log_transformed_columns = {}
-
-for col in income_expenditure_columns:
-    min_val = df[col].min()
-    if min_val < 0:
-        # Shift data to positive if negative values are present
-        df[col + "_LOG"] = np.log1p(df[col] - min_val)
-    else:
-        df[col + "_LOG"] = np.log1p(df[col])
-    log_transformed_columns[col] = col + "_LOG"
 
 # Step 9: Final cleanup
 df.replace(r'^\s*$', np.nan, regex=True, inplace=True)
@@ -95,14 +80,15 @@ df['OCCUP'] = df['OCCUP'].cat.add_categories([0])
 df['KB'] = df['KB'].cat.add_categories([0])
 df['CW'] = df['CW'].cat.add_categories([0, 7])
 
+# Change 0s in CW to 7 before filling NaNs
+df['CW'] = pd.to_numeric(df['CW'], errors='coerce')
+df.loc[df['CW'] == 0, 'CW'] = 7
+
 # Fill NaNs in OCCUP and KB with 0 (meaning no occupation/business)
 df[['OCCUP', 'KB']] = df[['OCCUP', 'KB']].fillna(0)
 
-# For CW, first fill NaNs with 0 (Not Applicable)
+# For CW, fill NaNs with 0 (Not Applicable)
 df['CW'] = df['CW'].fillna(0)
-
-# Now clearly differentiate original 'Worked for private household' from 'Not Applicable'
-df.loc[df['CW'] == 0, 'CW'] = 7
 
 # Now explicitly set CW=0 where OCCUP and KB are both 0 (indicating no occupation/business)
 df.loc[(df['OCCUP'] == 0) & (df['KB'] == 0), 'CW'] = 0
@@ -110,7 +96,7 @@ df.loc[(df['OCCUP'] == 0) & (df['KB'] == 0), 'CW'] = 0
 # Remove unused categories (cleanup)
 df['OCCUP'] = df['OCCUP'].cat.remove_unused_categories()
 df['KB'] = df['KB'].cat.remove_unused_categories()
-df['CW'] = df['CW'].cat.remove_unused_categories()
+
 
 # Optional: check the unique values after transformation
 print("Updated unique values after fixes:")
@@ -136,11 +122,21 @@ for col in age_employment_columns:
 # Quick verification
 for col in age_employment_columns:
     print(f"{col} unique values: {df[col].unique()}")
+
+
+# Step 8: Apply Log Transformation to Numeric Columns (EXCLUDING categorical columns)
+log_transformed_columns = {}
+
+for col in income_expenditure_columns:
+    min_val = df[col].min()
+    if min_val < 0:
+        # Shift data to positive if negative values are present
+        df[col] = np.log1p(df[col] - min_val)
+    else:
+        df[col] = np.log1p(df[col])
     
 # Step 10: Save the Cleaned Dataset
 cleaned_file_path = "FIES_2012_Cleaned.csv"
 df.to_csv(cleaned_file_path, index=False)
 
-print(f"Log-transformed columns: {list(log_transformed_columns.values())}")
-print("Original categorical columns restored and not modified.")
-print("Categorical values were never converted to numeric or transformed.")
+
