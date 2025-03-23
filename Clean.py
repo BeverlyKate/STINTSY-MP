@@ -22,7 +22,7 @@ df = df.dropna(thresh=threshold, axis=1)
 # Define ALL categorical columns (both text-based and numeric)
 categorical_columns = [
     # Text-based categorical
-    "W_REGN", "URB", "SEX", "MS", "JOB", "HHTYPE", "TENURE", "TOILET", "ELECTRIC", "WATER",
+    "W_REGN", "URB", "SEX", "MS",  'W_OID', "JOB", "HHTYPE", "TENURE", "TOILET", "ELECTRIC", "WATER",
     # Numeric categorical 
     "OCCUP", "KB", "CW", "AGELESS5", "AGE5_17", "EMPLOYED_PAY", "EMPLOYED_PROF"
 ]
@@ -34,7 +34,7 @@ df[categorical_columns] = df[categorical_columns].astype("category")
 categorical_original_data = df[categorical_columns].copy()
 
 # Step 3: Fill missing values in numeric columns (EXCLUDING categorical columns)
-numeric_columns = ['W_SHSN', 'NATDC', 'HSE_ALTERTN', 'W_OID', 'PSU', 'REGPC', 'T_ACTRENT',
+numeric_columns = ['W_SHSN', 'NATDC', 'HSE_ALTERTN', 'PSU', 'REGPC', 'T_ACTRENT',
  'T_BIMPUTED_RENT', 'T_RENTVAL', 'BLDG_TYPE', 'RFACT', 'FSIZE', 'WALLS',
  'BWEIGHT', 'AGRI_SAL', 'RSTR', 'NONAGRI_SAL', 'T_IMPUTED_RENT', 'AGE',
  'T_FOOD_NEC', 'MEMBERS', 'NATPC', 'ROOF', 'FOOD_ACCOM_SRVC', 'W_HCN',
